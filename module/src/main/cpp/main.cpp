@@ -2,10 +2,9 @@
 #include <cstring>
 #include <string>
 
-#include <errno.h>
 #include <dirent.h>
-#include <fcntl.h>
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <jni.h>
 #include <unistd.h>
 
@@ -65,16 +64,15 @@ static void forkAndSpecializePost(JNIEnv *env, jclass clazz, jint res) {
 				LOGI("Loading reedle from %s", library_path.data());
 				void *handle = dlopen(library_path.data(), RTLD_LAZY);
 				if (!handle) {
-					LOGW("Failed to load reedle: %s", dlerror());
-					LOGW("Maybe permission denied?");
+					LOGW("Failed to load reedle: %s. Maybe permission denied?", dlerror());
 					return;
 				}
-				auto entry = (void (*)(const char*))dlsym(handle, "reedle_main");
+				auto entry = (void (*)(JNIEnv*, const char*))dlsym(handle, "reedle_main");
 				if (!entry) {
 					LOGW("Entry not found in reedle");
 					return;
 				}
-				entry(app_data_dir.data());
+				entry(env, app_data_dir.data());
 			}
 		}
 		closedir(dir);
